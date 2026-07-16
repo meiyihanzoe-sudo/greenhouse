@@ -117,7 +117,14 @@ export default function ParentReview() {
           >
             📊 星宝的学习旅程
           </h1>
-          <div className="w-16" /> {/* 平衡布局 */}
+          <button
+            onClick={() => navigate('/game/custom')}
+            className="flex items-center gap-1 px-3 py-2 text-sm rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-200 transition-colors"
+            style={{ fontSize: '16px', minHeight: '48px' }}
+            title="管理自定义场景"
+          >
+            🛠️
+          </button>
         </div>
 
         {loading ? (
