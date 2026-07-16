@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+/* ASD 友好全局样式 */
+html {
+  font-size: 20px;
+}
+
+button, a, [role="button"] {
+  min-width: 48px;
+  min-height: 48px;
+}
+
+@media (prefers-contrast: high) {
+  * {
+    border-color: currentColor;
+  }
+}
+
+/* ===== 互动插画 — 热点动画 ===== */
+
+/* 热点脉冲动画（温和，非闪烁，0.8s 周期） */
+@keyframes hotspotPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
+  }
+}
+
+/* 热点弹跳动画 */
+@keyframes hotspotBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-hotspot-pulse {
+  animation: hotspotPulse 2s ease-in-out infinite;
+}
+
+.animate-hotspot-bounce {
+  animation: hotspotBounce 1.5s ease-in-out infinite;
+}
+
+/* 高对比度模式 — 热点边框加粗 */
+@media (prefers-contrast: high) {
+  .hotspot-button {
+    border-width: 3px !important;
+    outline: 2px solid #000;
+  }
+}
+
+/* 减少动画偏好 — 关闭所有热点动画 */
+@media (prefers-reduced-motion: reduce) {
+  .animate-hotspot-pulse,
+  .animate-hotspot-bounce {
+    animation: none;
+  }
+}
