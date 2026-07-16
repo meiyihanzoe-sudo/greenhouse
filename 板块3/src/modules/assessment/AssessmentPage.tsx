@@ -7,9 +7,11 @@
  *   - 每次只展示一道题
  *   - 温和的过渡动画
  *   - 明确的进度指示
+ *
+ * v2: 简化状态管理，修复 applyAssessment 不被调用的问题
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ASSESSMENT_QUESTIONS } from './questions';
 import { calculateResult } from './scoring';
@@ -20,7 +22,6 @@ import type { UserAnswers } from './scoring';
 import type { AbilityLevel } from './types';
 
 interface AssessmentPageProps {
-  /** 评估完成后的回调（用于内嵌模式，如 GameHome 中） */
   onComplete?: () => void;
 }
 
@@ -37,15 +38,31 @@ export default function AssessmentPage({ onComplete }: AssessmentPageProps) {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  // 使用 ref 确保 applyAssessment 总是可调用
+  const applyAssessmentRef = useRef(applyAssessment);
+  applyAssessmentRef.current = applyAssessment;
+
   const totalQuestions = ASSESSMENT_QUESTIONS.length;
   const currentQuestion = ASSESSMENT_QUESTIONS[currentQuestionIndex];
 
-  // 开始评估
   const handleStart = useCallback(() => {
     setPhase('questioning');
   }, []);
 
-  // 选择选项
+  // 完成评估 — 提取为独立函数，确保不被闭包影响
+  const finishAssessment = useCallback((finalAnswers: UserAnswers) => {
+    const result = calculateResult(finalAnswers);
+    // 保存到 IndexedDB
+    saveAssessmentResult(result).catch(() => {});
+    // 双重保险：同时直接写 localStorage 和通过 store
+    const dl = result.overallLevel as string;
+    try { localStorage.setItem('star-adventure-difficulty', dl); } catch {}
+    // 应用到 store
+    applyAssessmentRef.current(result.overallLevel);
+    // 切换到结果页
+    setPhase('result');
+  }, []);
+
   const handleSelectOption = useCallback(
     (optionIndex: number) => {
       if (isTransitioning || selectedOption !== null) return;
@@ -53,29 +70,24 @@ export default function AssessmentPage({ onComplete }: AssessmentPageProps) {
       setSelectedOption(optionIndex);
       setIsTransitioning(true);
 
-      // 记录答案
       const newAnswers = { ...answers, [currentQuestion.id]: optionIndex };
       setAnswers(newAnswers);
 
-      // 延迟后进入下一题或结果
+      const isLast = currentQuestionIndex + 1 >= totalQuestions;
+
       setTimeout(() => {
-        if (currentQuestionIndex + 1 < totalQuestions) {
+        if (isLast) {
+          finishAssessment(newAnswers);
+        } else {
           setCurrentQuestionIndex((i) => i + 1);
           setSelectedOption(null);
           setIsTransitioning(false);
-        } else {
-          // 所有题目完成 → 计算结果
-          const result = calculateResult(newAnswers);
-          saveAssessmentResult(result).catch(() => {});
-          applyAssessment(result.overallLevel);
-          setPhase('result');
         }
       }, 600);
     },
-    [currentQuestionIndex, currentQuestion.id, answers, totalQuestions, isTransitioning, selectedOption, applyAssessment],
+    [currentQuestionIndex, currentQuestion.id, answers, totalQuestions, isTransitioning, selectedOption, finishAssessment],
   );
 
-  // 返回星图
   const handleBackToMap = useCallback(() => {
     setShowAssessment(false);
     if (onComplete) {
@@ -174,10 +186,8 @@ export default function AssessmentPage({ onComplete }: AssessmentPageProps) {
             transform: isTransitioning ? 'translateY(-10px)' : 'none',
           }}
         >
-          {/* 情境 emoji */}
           <div className="text-center text-4xl">{currentQuestion.emoji}</div>
 
-          {/* 情境描述 */}
           <p
             className="text-gray-800 text-center leading-relaxed font-medium"
             style={{ fontSize: '22px' }}
@@ -185,7 +195,6 @@ export default function AssessmentPage({ onComplete }: AssessmentPageProps) {
             {currentQuestion.scenario}
           </p>
 
-          {/* 选项 */}
           <div className="space-y-3">
             {currentQuestion.options.map((option, idx) => {
               const isSelected = selectedOption === idx;
@@ -233,7 +242,6 @@ function AssessmentResultView({ onBackToMap }: { onBackToMap: () => void }) {
 
   return (
     <div className="max-w-md w-full space-y-6">
-      {/* 结果卡片 */}
       <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 space-y-6 text-center">
         <div className="text-5xl">🎉</div>
         <h2
@@ -243,7 +251,6 @@ function AssessmentResultView({ onBackToMap }: { onBackToMap: () => void }) {
           准备完成！
         </h2>
 
-        {/* 等级徽章 */}
         <div
           className="inline-block px-6 py-3 rounded-2xl"
           style={{
