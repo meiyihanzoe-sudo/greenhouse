@@ -19,9 +19,14 @@ import { ABILITY_LEVEL_LABELS, ABILITY_LEVEL_DESCRIPTIONS } from './types';
 import type { UserAnswers } from './scoring';
 import type { AbilityLevel } from './types';
 
+interface AssessmentPageProps {
+  /** 评估完成后的回调（用于内嵌模式，如 GameHome 中） */
+  onComplete?: () => void;
+}
+
 type AssessmentPhase = 'intro' | 'questioning' | 'result';
 
-export default function AssessmentPage() {
+export default function AssessmentPage({ onComplete }: AssessmentPageProps) {
   const navigate = useNavigate();
   const applyAssessment = useGameStore((s) => s.applyAssessment);
   const setShowAssessment = useGameStore((s) => s.setShowAssessment);
@@ -73,8 +78,12 @@ export default function AssessmentPage() {
   // 返回星图
   const handleBackToMap = useCallback(() => {
     setShowAssessment(false);
-    navigate('/game');
-  }, [navigate, setShowAssessment]);
+    if (onComplete) {
+      onComplete();
+    } else {
+      navigate('/game');
+    }
+  }, [navigate, setShowAssessment, onComplete]);
 
   // ========== 开场引导 ==========
   if (phase === 'intro') {
