@@ -16,13 +16,11 @@
  */
 
 import { create } from 'zustand';
-import { getActiveScenes, getRecommendedSceneOrder, getSceneForDifficulty, type SceneData } from '@/data/scenes';
+import { getActiveScenes, getSceneForDifficulty, type SceneData } from '@/data/scenes';
 import { saveGameProgress, getGameProgress, saveCollectible, getCollectibles, savePlanetProgress, clearAllGameData, saveAchievementProgress, getAchievementProgress, getDailyTaskProgress, saveDailyTaskProgress, saveAllAchievementProgress } from '@/lib/storage';
 import type { GameProgress, Collectible, PlanetProgress, DifficultyLevel } from '@/types';
 import { checkAchievements, ALL_ACHIEVEMENTS, getTodayTasks, getTodayStr, mergeTaskProgress } from '@/modules/achievements';
 import type { AchievementUnlockEvent, AchievementContext } from '@/modules/achievements/types';
-import { getAssessmentResult } from '@/modules/assessment/storage';
-import type { AbilityLevel } from '@/modules/assessment/types';
 
 // ==================== 游戏状态 ====================
 
@@ -85,12 +83,8 @@ export interface GameStore {
   allStepsCorrect: boolean | null;
   /** v3: 待展示的成就解锁 */
   pendingAchievementUnlocks: AchievementUnlockEvent[];
-  /** v4: 当前难度等级 */
+  /** 当前难度等级 */
   difficultyLevel: DifficultyLevel;
-  /** v4: 是否已完成评估 */
-  hasAssessment: boolean;
-  /** v4: 是否正在显示评估 */
-  showAssessment: boolean;
 
   // 初始化
   initGame: () => Promise<void>;
@@ -113,12 +107,6 @@ export interface GameStore {
   acknowledgeAchievement: (achievementId: string) => void;
   /** v4: 设置难度等级 */
   setDifficultyLevel: (level: DifficultyLevel) => void;
-  /** v4: 标记评估完成 */
-  setHasAssessment: (value: boolean) => void;
-  /** v4: 显示/隐藏评估 */
-  setShowAssessment: (value: boolean) => void;
-  /** v4: 根据评估结果初始化场景顺序 */
-  applyAssessment: (level: AbilityLevel) => void;
 
   // 工具
   setSTTMode: (mode: STTMode) => void;
@@ -141,18 +129,6 @@ const VALID_TRANSITIONS: Record<GameState, GameState[]> = {
 
 function canTransition(from: GameState, to: GameState): boolean {
   return VALID_TRANSITIONS[from]?.includes(to) ?? false;
-}
-
-// ==================== 从 localStorage 同步读取（避免 initGame 异步延迟） ====================
-
-const DIFFICULTY_STORAGE_KEY = 'star-adventure-difficulty';
-
-function getStoredDifficulty(): DifficultyLevel {
-  try {
-    const stored = localStorage.getItem(DIFFICULTY_STORAGE_KEY);
-    if (stored === 'sprout' || stored === 'growing' || stored === 'blooming') return stored;
-  } catch {}
-  return 'sprout';
 }
 
 // ==================== Store 实现 ====================
@@ -183,9 +159,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   currentStepIndex: 0,
   allStepsCorrect: null,
   pendingAchievementUnlocks: [],
-  difficultyLevel: getStoredDifficulty(),
-  hasAssessment: false,
-  showAssessment: false,
+  difficultyLevel: 'sprout' as DifficultyLevel,
 
   // ---- 初始化 ----
   initGame: async () => {
@@ -262,23 +236,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }));
     }
 
-    // v4: 加载评估结果
-    let savedDifficultyLevel: DifficultyLevel = 'sprout';
-    let savedHasAssessment = false;
-    try {
-      const assessmentResult = await getAssessmentResult();
-      if (assessmentResult) {
-        savedHasAssessment = true;
-        // 将 AbilityLevel 映射为 DifficultyLevel（两者值相同）
-        savedDifficultyLevel = assessmentResult.overallLevel as unknown as DifficultyLevel;
-        // 根据评估结果重新排列场景顺序
-        activeScenes.length = 0;
-        activeScenes.push(...getRecommendedSceneOrder(savedDifficultyLevel));
-      }
-    } catch {
-      // 静默降级
-    }
-
     set({
       gameState: 'idle',
       scenes: activeScenes,
@@ -299,9 +256,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       currentStepIndex: 0,
       allStepsCorrect: null,
       pendingAchievementUnlocks: [],
-      difficultyLevel: savedDifficultyLevel,
-      hasAssessment: savedHasAssessment,
-      showAssessment: false,
+      difficultyLevel: 'sprout' as DifficultyLevel,
     });
   },
 
@@ -310,10 +265,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { gameState, scenes, currentSceneIndex, difficultyLevel } = get();
     if (!canTransition(gameState, 'sceneLoading')) return;
 
-    // 如果 store.scenes 尚未初始化（initGame 异步未完成），回退到 getActiveScenes()
-    const effectiveScenes = scenes.length > 0 ? scenes : getActiveScenes();
-    const rawScene = effectiveScenes[currentSceneIndex] ?? null;
-    // v5: 根据难度等级调整场景配置
+    const rawScene = scenes[currentSceneIndex] ?? null;
+    // v4: 根据难度等级调整场景配置
     const scene = rawScene ? getSceneForDifficulty(rawScene, difficultyLevel) : null;
 
     // 确定交互模式
@@ -661,12 +614,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { gameState, scenes, currentSceneIndex } = get();
     if (gameState !== 'progressUpdate' && gameState !== 'completed') return;
 
-    const effectiveScenes = scenes.length > 0 ? scenes : getActiveScenes();
     const nextIndex = currentSceneIndex + 1;
-    if (nextIndex < effectiveScenes.length) {
+    if (nextIndex < scenes.length) {
       set({
         currentSceneIndex: nextIndex,
-        currentScene: effectiveScenes[nextIndex],
+        currentScene: scenes[nextIndex],
         wrongAnswerHint: null,
         selectedOptionIndex: null,
         isCorrect: null,
@@ -704,23 +656,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   // ---- v4: 难度等级 ----
   setDifficultyLevel: (level: DifficultyLevel) => set({ difficultyLevel: level }),
-  setHasAssessment: (value: boolean) => set({ hasAssessment: value }),
-  setShowAssessment: (value: boolean) => set({ showAssessment: value }),
-
-  applyAssessment: (level: AbilityLevel) => {
-    const dl = level as unknown as DifficultyLevel;
-    const orderedScenes = getRecommendedSceneOrder(dl);
-    // 同步写入 localStorage，确保页面刷新后立即可用（不等 IndexedDB）
-    try { localStorage.setItem(DIFFICULTY_STORAGE_KEY, dl); } catch {}
-    set({
-      difficultyLevel: dl,
-      hasAssessment: true,
-      showAssessment: false,
-      scenes: orderedScenes,
-      currentSceneIndex: 0,
-      currentScene: orderedScenes[0] ?? null,
-    });
-  },
 
   resetGame: () => {
     set({

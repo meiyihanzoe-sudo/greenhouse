@@ -94,9 +94,6 @@ export function useGame() {
 
     // v4 新增状态
     difficultyLevel: store.difficultyLevel,
-    hasAssessment: store.hasAssessment,
-    showAssessment: store.showAssessment,
-    setShowAssessment: store.setShowAssessment,
 
     // 操作
     startScene: store.startScene,

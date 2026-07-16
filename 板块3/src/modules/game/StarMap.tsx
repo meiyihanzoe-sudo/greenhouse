@@ -11,8 +11,8 @@
 import { useNavigate } from 'react-router-dom';
 import { PlanetNode, type PlanetState } from './PlanetNode';
 import { StarProgress } from '@/components/shared/StarProgress';
-import { PLANET_NAMES, PLANET_EMOJIS, PLANET_SUBTITLES, DIFFICULTY_LABELS } from '@/types';
-import type { PlanetProgress, DifficultyLevel } from '@/types';
+import { PLANET_NAMES, PLANET_EMOJIS, PLANET_SUBTITLES } from '@/types';
+import type { PlanetProgress } from '@/types';
 import { useState } from 'react';
 
 interface StarMapProps {
@@ -22,12 +22,9 @@ interface StarMapProps {
   collectibles: { type: string }[];
   currentSceneIndex: number;
   hasSeenIntro: boolean;
-  hasAssessment: boolean;
-  difficultyLevel?: DifficultyLevel;
   onStartScene: (sceneId: string) => void;
   onShowIntro: () => void;
   onParentReview: () => void;
-  onReassess?: () => void;
 }
 
 const PLANET_ORDER = ['greeting', 'thanks', 'emotion', 'request'];
@@ -62,12 +59,9 @@ export default function StarMap({
   collectibles,
   currentSceneIndex,
   hasSeenIntro,
-  hasAssessment,
-  difficultyLevel = 'sprout',
   onStartScene,
   onShowIntro,
   onParentReview,
-  onReassess,
 }: StarMapProps) {
   const navigate = useNavigate();
   const [pressTimer, setPressTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
@@ -143,26 +137,6 @@ export default function StarMap({
             </span>
           </div>
           <StarProgress current={stars} total={totalScenes} />
-          {/* v4: 难度等级 + 重新评估 */}
-          <div className="flex items-center gap-2">
-            {hasAssessment && (
-              <span
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700"
-                style={{ fontSize: '16px' }}
-              >
-                {DIFFICULTY_LABELS[difficultyLevel]}
-              </span>
-            )}
-            {onReassess && (
-              <button
-                onClick={onReassess}
-                className="ml-auto px-3 py-1 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-500 text-sm transition-colors"
-                style={{ fontSize: '16px', minHeight: '36px' }}
-              >
-                🔄 重新评估
-              </button>
-            )}
-          </div>
           {/* v3: 成就入口 */}
           <button
             onClick={() => navigate('/game/achievements')}

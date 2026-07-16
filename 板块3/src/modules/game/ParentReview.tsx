@@ -19,9 +19,6 @@ import { getGameProgress } from '@/lib/storage';
 import { getActiveScenes, CATEGORY_LABELS } from '@/data/scenes';
 import { StarProgress } from '@/components/shared/StarProgress';
 import { AchievementSummary } from '@/modules/achievements';
-import { getAssessmentResult } from '@/modules/assessment/storage';
-import { ABILITY_LEVEL_LABELS } from '@/modules/assessment/types';
-import type { AssessmentResult } from '@/modules/assessment/types';
 import {
   PLANET_NAMES,
   PLANET_EMOJIS,
@@ -44,8 +41,6 @@ export default function ParentReview() {
   const [loading, setLoading] = useState(true);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetting, setResetting] = useState(false);
-  const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null);
-
   useEffect(() => {
     async function loadRecords() {
       try {
@@ -68,13 +63,6 @@ export default function ParentReview() {
           .sort((a, b) => b.completedAt - a.completedAt);
 
         setRecords(practiceRecords);
-      } catch {
-        // 静默降级
-      }
-      // 加载评估结果
-      try {
-        const result = await getAssessmentResult();
-        if (result) setAssessmentResult(result);
       } catch {
         // 静默降级
       }
@@ -331,68 +319,6 @@ export default function ParentReview() {
                   style={{ fontSize: '18px' }}
                 >
                   完成一些场景后，这里会显示练习记录
-                </p>
-              </div>
-            )}
-
-            {/* v4: 能力评估报告 */}
-            {assessmentResult && (
-              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 space-y-4">
-                <h2
-                  className="font-bold text-gray-700"
-                  style={{ fontSize: '22px' }}
-                >
-                  🧭 能力评估报告
-                </h2>
-                <div className="flex items-center gap-3 mb-3">
-                  <span
-                    className="px-4 py-2 rounded-2xl text-white font-bold"
-                    style={{
-                      fontSize: '20px',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    }}
-                  >
-                    {ABILITY_LEVEL_LABELS[assessmentResult.overallLevel]}
-                  </span>
-                  <span
-                    className="text-gray-500"
-                    style={{ fontSize: '18px' }}
-                  >
-                    综合能力 {assessmentResult.overallPercentage}%
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  {assessmentResult.dimensions.map((d) => (
-                    <div key={d.dimension} className="flex items-center gap-3">
-                      <span style={{ fontSize: '18px', width: '80px' }} className="text-gray-600">
-                        {d.dimension === 'greeting' ? '👋 问候' :
-                         d.dimension === 'thanks' ? '🙏 感谢' :
-                         d.dimension === 'emotion' ? '😊 情绪' : '🗣️ 表达'}
-                      </span>
-                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${d.percentage}%`,
-                            background: d.percentage <= 40
-                              ? 'linear-gradient(90deg, #fbbf24, #f59e0b)'
-                              : d.percentage <= 75
-                                ? 'linear-gradient(90deg, #667eea, #764ba2)'
-                                : 'linear-gradient(90deg, #10b981, #059669)',
-                          }}
-                        />
-                      </div>
-                      <span style={{ fontSize: '16px', width: '40px' }} className="text-gray-500 text-right">
-                        {d.percentage}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <p
-                  className="text-gray-400 mt-2"
-                  style={{ fontSize: '16px' }}
-                >
-                  评估时间：{new Date(assessmentResult.assessedAt).toLocaleDateString('zh-CN')}
                 </p>
               </div>
             )}

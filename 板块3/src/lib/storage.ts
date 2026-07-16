@@ -1,7 +1,5 @@
 /**
  * IndexedDB 离线存储 — 板块3 接口实现
- *
- * v4 新增：assessment_results store
  */
 
 import { openDB, type IDBPDatabase } from 'idb';
@@ -9,7 +7,7 @@ import type { GameProgress, Collectible, PlanetProgress } from '@/types';
 import type { AchievementProgress, DailyTaskProgress } from '@/modules/achievements/types';
 
 const DB_NAME = 'green-house';
-const DB_VERSION = 4; // v4: 新增能力评估 store
+const DB_VERSION = 4;
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 
@@ -58,10 +56,6 @@ export function getDb(): Promise<IDBPDatabase> {
         // v3: daily_task_progress
         if (!db.objectStoreNames.contains('daily_task_progress')) {
           db.createObjectStore('daily_task_progress', { keyPath: 'date' });
-        }
-        // v4: assessment_results
-        if (!db.objectStoreNames.contains('assessment_results')) {
-          db.createObjectStore('assessment_results', { keyPath: 'id' });
         }
       },
     });
@@ -146,7 +140,7 @@ export async function getDailyTaskProgress(date: string): Promise<DailyTaskProgr
 export async function clearAllGameData(): Promise<void> {
   const db = await getDb();
   const tx = db.transaction(
-    ['game_progress', 'collectibles', 'planet_progress', 'achievement_progress', 'daily_task_progress', 'assessment_results'],
+    ['game_progress', 'collectibles', 'planet_progress', 'achievement_progress', 'daily_task_progress'],
     'readwrite',
   );
   await Promise.all([
