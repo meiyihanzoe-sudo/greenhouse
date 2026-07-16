@@ -59,9 +59,11 @@ export default function ScenePlay() {
   >('idle');
   const [voiceError, setVoiceError] = useState<string>('');
 
-  // 确保场景已加载
+  // 确保场景已加载 — 优先使用 store 中已应用难度变体的 currentScene
   const activeScenes = getActiveScenes();
-  const scene = activeScenes.find((s) => s.id === sceneId) || activeScenes[currentSceneIndex];
+  const scene = currentScene
+    || activeScenes.find((s) => s.id === sceneId)
+    || activeScenes[currentSceneIndex];
 
   // 当前星球信息
   const planetCategory = scene?.category;
