@@ -20,7 +20,7 @@ import { StarProgress } from '@/components/shared/StarProgress';
 import { InteractiveScene } from '@/components/interactive';
 import { AchievementToast } from '@/modules/achievements';
 import { getAchievementById } from '@/modules/achievements';
-import { getActiveScenes } from '@/data/scenes';
+import { getActiveScenes, getSceneForDifficulty } from '@/data/scenes';
 import { PLANET_EMOJIS, PLANET_NAMES } from '@/types';
 
 export default function ScenePlay() {
@@ -41,6 +41,7 @@ export default function ScenePlay() {
     wrongAnswerHint,
     interactionMode,
     currentStepIndex,
+    difficultyLevel,
     startScene,
     selectOption,
     submitEmotion,
@@ -59,11 +60,13 @@ export default function ScenePlay() {
   >('idle');
   const [voiceError, setVoiceError] = useState<string>('');
 
-  // 确保场景已加载 — 优先使用 store 中已应用难度变体的 currentScene
+  // 确保场景已加载 — 始终应用难度变体
   const activeScenes = getActiveScenes();
-  const scene = currentScene
+  const rawScene = currentScene
     || activeScenes.find((s) => s.id === sceneId)
     || activeScenes[currentSceneIndex];
+  // v5: 无论场景来源，始终应用难度变体
+  const scene = rawScene ? getSceneForDifficulty(rawScene, difficultyLevel) : null;
 
   // 当前星球信息
   const planetCategory = scene?.category;

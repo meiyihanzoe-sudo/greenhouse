@@ -143,6 +143,18 @@ function canTransition(from: GameState, to: GameState): boolean {
   return VALID_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
+// ==================== 从 localStorage 同步读取（避免 initGame 异步延迟） ====================
+
+const DIFFICULTY_STORAGE_KEY = 'star-adventure-difficulty';
+
+function getStoredDifficulty(): DifficultyLevel {
+  try {
+    const stored = localStorage.getItem(DIFFICULTY_STORAGE_KEY);
+    if (stored === 'sprout' || stored === 'growing' || stored === 'blooming') return stored;
+  } catch {}
+  return 'sprout';
+}
+
 // ==================== Store 实现 ====================
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -171,7 +183,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   currentStepIndex: 0,
   allStepsCorrect: null,
   pendingAchievementUnlocks: [],
-  difficultyLevel: 'sprout' as DifficultyLevel,
+  difficultyLevel: getStoredDifficulty(),
   hasAssessment: false,
   showAssessment: false,
 
@@ -298,8 +310,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { gameState, scenes, currentSceneIndex, difficultyLevel } = get();
     if (!canTransition(gameState, 'sceneLoading')) return;
 
-    const rawScene = scenes[currentSceneIndex] ?? null;
-    // v4: 根据难度等级调整场景配置
+    // 如果 store.scenes 尚未初始化（initGame 异步未完成），回退到 getActiveScenes()
+    const effectiveScenes = scenes.length > 0 ? scenes : getActiveScenes();
+    const rawScene = effectiveScenes[currentSceneIndex] ?? null;
+    // v5: 根据难度等级调整场景配置
     const scene = rawScene ? getSceneForDifficulty(rawScene, difficultyLevel) : null;
 
     // 确定交互模式
@@ -647,11 +661,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { gameState, scenes, currentSceneIndex } = get();
     if (gameState !== 'progressUpdate' && gameState !== 'completed') return;
 
+    const effectiveScenes = scenes.length > 0 ? scenes : getActiveScenes();
     const nextIndex = currentSceneIndex + 1;
-    if (nextIndex < scenes.length) {
+    if (nextIndex < effectiveScenes.length) {
       set({
         currentSceneIndex: nextIndex,
-        currentScene: scenes[nextIndex],
+        currentScene: effectiveScenes[nextIndex],
         wrongAnswerHint: null,
         selectedOptionIndex: null,
         isCorrect: null,
@@ -695,6 +710,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   applyAssessment: (level: AbilityLevel) => {
     const dl = level as unknown as DifficultyLevel;
     const orderedScenes = getRecommendedSceneOrder(dl);
+    // 同步写入 localStorage，确保页面刷新后立即可用（不等 IndexedDB）
+    try { localStorage.setItem(DIFFICULTY_STORAGE_KEY, dl); } catch {}
     set({
       difficultyLevel: dl,
       hasAssessment: true,
