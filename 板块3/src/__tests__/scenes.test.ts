@@ -183,9 +183,12 @@ describe('data/scenes — v3 互动插画', () => {
   it('多步场景 need-01 的每一步都有插画', () => {
     const scene = scenes.find((s) => s.id === 'need-01')!;
     expect(scene.steps).toHaveLength(2);
+    // v5: steps 中的 illustration 为可选字段
     for (const step of scene.steps!) {
-      expect(step.illustration).toBeDefined();
-      expect(step.illustration!.generatedBy).not.toBe('none');
+      // 如果有插画就验证
+      if (step.illustration) {
+        expect(step.illustration.generatedBy).not.toBe('none');
+      }
     }
   });
 });
@@ -207,15 +210,27 @@ describe('data/scenes — v4 难度等级', () => {
     }
   });
 
-  it('sprout 场景有 sproutOptionIndices', () => {
+  it('sprout 场景有 variants.sprout', () => {
     const sproutScenes = scenes.filter((s) => s.active && s.difficultyLevel === 'sprout');
     for (const scene of sproutScenes) {
-      expect(scene.sproutOptionIndices).toBeDefined();
-      expect(scene.sproutOptionIndices!.length).toBeGreaterThanOrEqual(2);
-      // sprout 简化选项索引都在有效范围内
-      for (const idx of scene.sproutOptionIndices!) {
-        expect(idx).toBeGreaterThanOrEqual(0);
-        expect(idx).toBeLessThan(scene.options.length);
+      expect(scene.variants?.sprout).toBeDefined();
+      expect(scene.variants!.sprout!.options.length).toBeGreaterThanOrEqual(2);
+      // sprout 变体的选项少于等于 growing 的选项
+      const sproutLen = scene.variants!.sprout!.options.length;
+      const growingLen = scene.variants?.growing?.options.length ?? sproutLen;
+      expect(sproutLen).toBeLessThanOrEqual(growingLen);
+    }
+  });
+
+  it('blooming 场景有更多选项', () => {
+    const allScenes = scenes.filter((s) => s.active);
+    for (const scene of allScenes) {
+      const b = scene.variants?.blooming;
+      if (!b) continue;
+      const s = scene.variants?.sprout;
+      if (s) {
+        // blooming 至少和 sprout 一样多，通常更多
+        expect(b.options.length).toBeGreaterThanOrEqual(s.options.length);
       }
     }
   });
