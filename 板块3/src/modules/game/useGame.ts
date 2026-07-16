@@ -92,6 +92,12 @@ export function useGame() {
     scenes: store.scenes,
     pendingAchievementUnlocks: store.pendingAchievementUnlocks,
 
+    // v4 新增状态
+    difficultyLevel: store.difficultyLevel,
+    hasAssessment: store.hasAssessment,
+    showAssessment: store.showAssessment,
+    setShowAssessment: store.setShowAssessment,
+
     // 操作
     startScene: store.startScene,
     selectOption: store.selectOption,

@@ -20,6 +20,16 @@ export interface GameProgress {
 /** 场景类型 */
 export type SceneType = 'single-choice' | 'multi-step' | 'emotion-recognition';
 
+/** 难度等级 */
+export type DifficultyLevel = 'sprout' | 'growing' | 'blooming';
+
+/** 难度等级中文名 */
+export const DIFFICULTY_LABELS: Record<DifficultyLevel, string> = {
+  sprout: '🌱 简单',
+  growing: '🌿 中等',
+  blooming: '🌳 挑战',
+};
+
 /** 多步场景的步骤定义 */
 export interface SceneStep {
   /** 步骤描述 */

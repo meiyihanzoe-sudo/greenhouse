@@ -1,10 +1,11 @@
 /**
- * 游戏主页 — 板块3 实现 v2
+ * 游戏主页 — 板块3 实现 v4
  *
  * 整合：
  *   1. StoryIntro（首次进入展示故事，可回看）
- *   2. StarMap（星球地图主界面）
- *   3. 家长入口 → ParentReview
+ *   2. 能力评估（首次进入在故事后展示）
+ *   3. StarMap（星球地图主界面）
+ *   4. 家长入口 → ParentReview
  *
  * ASD 友好：字体 ≥ 20px，按钮 ≥ 48px，高对比度。
  */
@@ -25,6 +26,8 @@ export default function GameHome() {
     collectibles,
     hasSeenIntro,
     markIntroSeen,
+    hasAssessment,
+    difficultyLevel,
   } = useGame();
 
   const [showIntro, setShowIntro] = useState(false);
@@ -36,6 +39,10 @@ export default function GameHome() {
         onStart={() => {
           markIntroSeen();
           setShowIntro(false);
+          // 首次进入：故事结束后引导评估
+          if (!hasAssessment) {
+            navigate('/game/assessment');
+          }
         }}
       />
     );
@@ -60,9 +67,12 @@ export default function GameHome() {
       collectibles={collectibles}
       currentSceneIndex={currentSceneIndex}
       hasSeenIntro={hasSeenIntro}
+      hasAssessment={hasAssessment}
+      difficultyLevel={difficultyLevel}
       onStartScene={(sceneId) => navigate(`/game/${sceneId}`)}
       onShowIntro={() => setShowIntro(true)}
       onParentReview={() => navigate('/game/review')}
+      onReassess={() => navigate('/game/assessment')}
     />
   );
 }

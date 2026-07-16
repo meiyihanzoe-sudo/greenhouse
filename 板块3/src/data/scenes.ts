@@ -12,7 +12,7 @@
  */
 
 import type { GameScene } from '@/types';
-import type { SceneType, SceneStep, IllustrationAsset } from '@/types';
+import type { SceneType, SceneStep, IllustrationAsset, DifficultyLevel } from '@/types';
 
 export interface SceneData extends GameScene {
   emoji: string;
@@ -29,11 +29,19 @@ export interface SceneData extends GameScene {
   emotionOptions?: { emoji: string; label: string; correct: boolean }[];
   /** 互动插画资源（可选，无插画时降级为 emoji 显示） */
   illustration?: IllustrationAsset;
+  /** 难度等级 */
+  difficultyLevel: DifficultyLevel;
+  /** 简化版选项（仅用于 sprout 难度，只保留 2 个选项的索引） */
+  sproutOptionIndices?: number[];
+  /** 简化版跟读提示（sprout 难度使用更短的句子） */
+  sproutVoicePrompt?: string;
+  /** 高级版跟读提示（blooming 难度使用更完整的句子） */
+  bloomingVoicePrompt?: string;
 }
 
 export const scenes: SceneData[] = [
   // ================================================================
-  // greeting（问候，3个）
+  // greeting（问候，3个）→ sprout 级别为主
   // ================================================================
   {
     id: 'greet-01',
@@ -48,6 +56,9 @@ export const scenes: SceneData[] = [
     voicePrompt: '太棒了！你也来说一遍"你好"吧！👋',
     category: 'greeting',
     active: true,
+    difficultyLevel: 'sprout',
+    sproutOptionIndices: [0, 1],  // 只保留前两个选项
+    sproutVoicePrompt: '你也来说"你好"吧！👋',
     introText: '星宝的火箭降落在问候星上。这里的人们都喜欢微笑着说"你好"。你也能做到吗？',
     successText: '星宝勇敢地走过去打了招呼！小朋友也开心地对他挥了挥手。问候星亮起来了！',
     outroText: '你也像星宝一样勇敢地说出了"你好"！',
@@ -92,6 +103,9 @@ export const scenes: SceneData[] = [
     voicePrompt: '真棒！你也来说"老师早上好"吧！🌅',
     category: 'greeting',
     active: true,
+    difficultyLevel: 'sprout',
+    sproutOptionIndices: [0, 2],
+    sproutVoicePrompt: '你也来说"老师好"吧！🌅',
     introText: '每天早上，老师都会在门口迎接大家。一个响亮的"早上好"能让老师很开心！',
     successText: '老师听到"早上好"，笑着摸了摸星宝的头。美好的一天开始了！',
     outroText: '每天早上跟老师打招呼，老师会很高兴的！',
@@ -111,6 +125,9 @@ export const scenes: SceneData[] = [
     voicePrompt: '做得对！你也来说"阿姨好"吧！😊',
     category: 'greeting',
     active: true,
+    difficultyLevel: 'sprout',
+    sproutOptionIndices: [0, 1],
+    sproutVoicePrompt: '你也来说"阿姨好"吧！😊',
     introText: '去别人家做客时，先打个招呼是有礼貌的表现。阿姨看到你一定会很开心的！',
     successText: '阿姨听到"阿姨好"笑得合不拢嘴，热情地请星宝进屋玩！',
     outroText: '做客时先问好，大家都会喜欢你！',
@@ -119,7 +136,7 @@ export const scenes: SceneData[] = [
   },
 
   // ================================================================
-  // thanks（感谢，3个）
+  // thanks（感谢，3个）→ growing 级别
   // ================================================================
   {
     id: 'thanks-01',
@@ -134,6 +151,10 @@ export const scenes: SceneData[] = [
     voicePrompt: '很好！你也来说"谢谢奶奶"吧！🙏',
     category: 'thanks',
     active: true,
+    difficultyLevel: 'growing',
+    sproutOptionIndices: [0, 2],
+    sproutVoicePrompt: '你也来说"谢谢"吧！🙏',
+    bloomingVoicePrompt: '你也来完整地说"谢谢奶奶，我很喜欢这个礼物"吧！🙏',
     introText: '星宝的火箭飞到了感谢星。这里的人们收到礼物时都会说一声温暖的"谢谢"。',
     successText: '奶奶听到"谢谢"后笑得可开心了，还抱了抱星宝！感谢星的能量充满了星宝的火箭。',
     outroText: '你学会说"谢谢"了！',
@@ -178,6 +199,9 @@ export const scenes: SceneData[] = [
     voicePrompt: '真礼貌！你也来说"谢谢你"吧！😊',
     category: 'thanks',
     active: true,
+    difficultyLevel: 'growing',
+    sproutOptionIndices: [1, 2],
+    sproutVoicePrompt: '你也来说"谢谢"吧！😊',
     introText: '别人和你分享东西的时候，一句"谢谢"会让分享的人也很开心！',
     successText: '小朋友听到"谢谢"特别高兴，以后还愿意和星宝一起分享！',
     outroText: '收到别人的好意时说谢谢，朋友会越来越多！',
@@ -197,6 +221,10 @@ export const scenes: SceneData[] = [
     voicePrompt: '太棒了！你也来说"谢谢叔叔"吧！🙏',
     category: 'thanks',
     active: true,
+    difficultyLevel: 'growing',
+    sproutOptionIndices: [1, 2],
+    sproutVoicePrompt: '你也来说"谢谢"吧！🙏',
+    bloomingVoicePrompt: '你也来完整地说"谢谢叔叔帮我捡玩具"吧！🙏',
     introText: '当陌生人帮助了我们，说一声"谢谢"是最好的回应。',
     successText: '叔叔笑着说"不客气"，星宝感受到了帮助和被帮助的温暖！',
     outroText: '别人帮忙要说谢谢，这是人与人之间的温暖！',
@@ -205,7 +233,7 @@ export const scenes: SceneData[] = [
   },
 
   // ================================================================
-  // emotion（情绪表达，3个）
+  // emotion（情绪表达，3个）→ growing-blooming 级别
   // ================================================================
   {
     id: 'emotion-01',
@@ -220,6 +248,10 @@ export const scenes: SceneData[] = [
     voicePrompt: '太好了！你也来说"我好高兴"吧！😊',
     category: 'emotion',
     active: true,
+    difficultyLevel: 'growing',
+    sproutOptionIndices: [0, 2],
+    sproutVoicePrompt: '你也来说"我好高兴"吧！😊',
+    bloomingVoicePrompt: '你也来完整地说"老师表扬了我，我好高兴"吧！😊',
     introText: '星宝的火箭来到了情绪星。这里的人们会用语言说出自己的感受。先来认一认，哪个是开心的表情？',
     successText: '星宝不仅认出了开心的表情，还学会说出"我好高兴"！情绪星的光芒变得温暖而明亮。',
     outroText: '把开心说出来，快乐会加倍！',
@@ -276,6 +308,10 @@ export const scenes: SceneData[] = [
     voicePrompt: '说出来就好了！你也来说"我很难过"吧，妈妈会帮你的！😢',
     category: 'emotion',
     active: true,
+    difficultyLevel: 'growing',
+    sproutOptionIndices: [1, 2],
+    sproutVoicePrompt: '你也来说"我很难过"吧！😢',
+    bloomingVoicePrompt: '你也来完整地说"妈妈，我的玩具坏了，我很难过"吧！😢',
     introText: '每个人都会有难过的时候。把难过的感觉说出来，别人才能帮助你。',
     successText: '妈妈听到后抱住了星宝："没关系的，我们一起来修好它！"',
     outroText: '难过的时候说出来，会有人来帮你！',
@@ -295,6 +331,10 @@ export const scenes: SceneData[] = [
     voicePrompt: '勇敢说出来！你也来说"我有点害怕"吧，妈妈会陪着你的！😨',
     category: 'emotion',
     active: true,
+    difficultyLevel: 'blooming',
+    sproutOptionIndices: [1, 2],
+    sproutVoicePrompt: '你也来说"我有点害怕"吧！😨',
+    bloomingVoicePrompt: '你也来完整地说"妈妈，外面有声音，我有点害怕"吧！😨',
     introText: '害怕是很正常的感受。勇敢地说出来，就有人陪着你、保护你。',
     successText: '妈妈打开灯，坐在星宝床边："别怕，妈妈在这里陪着你。"',
     outroText: '害怕的时候说出来，就不会一个人面对了！',
@@ -303,7 +343,7 @@ export const scenes: SceneData[] = [
   },
 
   // ================================================================
-  // request（需求表达，3个）
+  // request（需求表达，3个）→ mixed 级别
   // ================================================================
   {
     id: 'need-01',
@@ -318,6 +358,10 @@ export const scenes: SceneData[] = [
     voicePrompt: '很好！你也来说"妈妈我想喝水"吧！💧',
     category: 'request',
     active: true,
+    difficultyLevel: 'growing',
+    sproutOptionIndices: [1, 2],
+    sproutVoicePrompt: '你也来说"我想喝水"吧！💧',
+    bloomingVoicePrompt: '你也来完整地说"妈妈，我口渴了，我想喝水"吧！💧',
     introText: '星宝的火箭来到了最后一站——表达星。这里的人都知道，把需要说出来，别人才能帮你。',
     successText: '星宝清楚地表达了自己的需求！妈妈立刻给他倒了水。表达星的能量收集完毕！',
     outroText: '你学会了清楚地说出自己的需要。这是最重要的一项能力！',
@@ -407,6 +451,9 @@ export const scenes: SceneData[] = [
     voicePrompt: '很棒！你也来说"妈妈我想上厕所"吧！🚽',
     category: 'request',
     active: true,
+    difficultyLevel: 'sprout',
+    sproutOptionIndices: [1, 2],
+    sproutVoicePrompt: '你也来说"我想上厕所"吧！🚽',
     introText: '在外面玩的时候，如果需要上厕所，一定要及时告诉大人。',
     successText: '妈妈立刻带星宝去了厕所。"说出来就好，不用憋着！"',
     outroText: '及时说出自己的需要，身体才舒服！',
@@ -426,6 +473,10 @@ export const scenes: SceneData[] = [
     voicePrompt: '说得很清楚！你也来说"妈妈我想要这个"吧！🧸',
     category: 'request',
     active: true,
+    difficultyLevel: 'blooming',
+    sproutOptionIndices: [1, 2],
+    sproutVoicePrompt: '你也来说"我想要这个"吧！🧸',
+    bloomingVoicePrompt: '你也来完整地说"妈妈，我想要这个玩具熊，可以吗"吧！🧸',
     introText: '看到喜欢的东西，清楚地告诉妈妈你的想法，比哭闹更有效。',
     successText: '星宝清楚地表达了想要的东西。妈妈微笑着想了想："等过节的时候，我们再来看看好不好？"',
     outroText: '好好说出自己的想法，大人才知道怎么回应你！',
@@ -447,6 +498,51 @@ export function getCategories(): string[] {
 /** 获取某个分类下所有已激活的场景 */
 export function getScenesByCategory(category: string): SceneData[] {
   return scenes.filter((s) => s.active && s.category === category);
+}
+
+/**
+ * 获取推荐场景排序（按评估结果难度从低到高排列）
+ * sprout 级别 → 优先 sprout 场景，然后是 growing
+ * growing 级别 → 优先 growing 场景
+ * blooming 级别 → 所有场景都可以
+ */
+export function getRecommendedSceneOrder(level: DifficultyLevel): SceneData[] {
+  const active = getActiveScenes();
+  const difficultyOrder: DifficultyLevel[] =
+    level === 'sprout'
+      ? ['sprout', 'growing', 'blooming']
+      : level === 'growing'
+        ? ['growing', 'sprout', 'blooming']
+        : ['blooming', 'growing', 'sprout'];
+
+  return active.sort((a, b) => {
+    const aIdx = difficultyOrder.indexOf(a.difficultyLevel);
+    const bIdx = difficultyOrder.indexOf(b.difficultyLevel);
+    return aIdx - bIdx;
+  });
+}
+
+/**
+ * 根据难度等级获取场景的展示配置
+ * - sprout: 减少选项数量、简化跟读句子
+ * - growing: 标准配置
+ * - blooming: 使用更丰富的跟读句子
+ */
+export function getSceneForDifficulty(scene: SceneData, level: DifficultyLevel): SceneData {
+  if (level === 'sprout' && scene.sproutOptionIndices) {
+    return {
+      ...scene,
+      options: scene.sproutOptionIndices.map((i) => scene.options[i]),
+      voicePrompt: scene.sproutVoicePrompt || scene.voicePrompt,
+    };
+  }
+  if (level === 'blooming' && scene.bloomingVoicePrompt) {
+    return {
+      ...scene,
+      voicePrompt: scene.bloomingVoicePrompt,
+    };
+  }
+  return scene;
 }
 
 /** 分类中文名映射 */

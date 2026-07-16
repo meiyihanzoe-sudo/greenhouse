@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { scenes, getActiveScenes, getCategories, CATEGORY_LABELS, getScenesByCategory } from '../data/scenes';
+import { scenes, getActiveScenes, getCategories, CATEGORY_LABELS, getScenesByCategory, getRecommendedSceneOrder } from '../data/scenes';
 
 describe('data/scenes — 基础完整性', () => {
   it('应该有 12 个场景', () => {
@@ -187,5 +187,45 @@ describe('data/scenes — v3 互动插画', () => {
       expect(step.illustration).toBeDefined();
       expect(step.illustration!.generatedBy).not.toBe('none');
     }
+  });
+});
+
+describe('data/scenes — v4 难度等级', () => {
+  const validLevels = ['sprout', 'growing', 'blooming'];
+
+  it('所有激活场景都有 difficultyLevel', () => {
+    const active = getActiveScenes();
+    for (const scene of active) {
+      expect(validLevels).toContain(scene.difficultyLevel);
+    }
+  });
+
+  it('问候类场景为 sprout 难度', () => {
+    const greetScenes = scenes.filter((s) => s.category === 'greeting' && s.active);
+    for (const scene of greetScenes) {
+      expect(scene.difficultyLevel).toBe('sprout');
+    }
+  });
+
+  it('sprout 场景有 sproutOptionIndices', () => {
+    const sproutScenes = scenes.filter((s) => s.active && s.difficultyLevel === 'sprout');
+    for (const scene of sproutScenes) {
+      expect(scene.sproutOptionIndices).toBeDefined();
+      expect(scene.sproutOptionIndices!.length).toBeGreaterThanOrEqual(2);
+      // sprout 简化选项索引都在有效范围内
+      for (const idx of scene.sproutOptionIndices!) {
+        expect(idx).toBeGreaterThanOrEqual(0);
+        expect(idx).toBeLessThan(scene.options.length);
+      }
+    }
+  });
+
+  it('getRecommendedSceneOrder 按难度排序', () => {
+    const order = getRecommendedSceneOrder('sprout');
+    expect(order.length).toBeGreaterThan(0);
+    // sprout 优先：前面的场景应该是 sprout 级别
+    const firstFew = order.slice(0, 3);
+    const hasSproutFirst = firstFew.some((s) => s.difficultyLevel === 'sprout');
+    expect(hasSproutFirst).toBe(true);
   });
 });
