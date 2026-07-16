@@ -270,22 +270,22 @@ export default function StarMap({
           </div>
         </div>
 
-        {/* v6: 自定义场景独立分区 */}
-        {customScenes.length > 0 && (
-          <div className="bg-white rounded-3xl shadow-sm border border-dashed border-indigo-200 p-4 space-y-3">
-            <button
-              onClick={() => setShowCustom(!showCustom)}
-              className="w-full flex items-center justify-between py-2"
-              style={{ minHeight: '48px' }}
-            >
-              <span className="font-bold text-indigo-600" style={{ fontSize: '22px' }}>
-                📝 家长自定义 ({customScenes.length})
-              </span>
-              <span className="text-indigo-400 text-lg">{showCustom ? '▲' : '▼'}</span>
-            </button>
-            {showCustom && (
-              <div className="space-y-2 pt-2 border-t border-indigo-100">
-                {customScenes.map((cs) => (
+        {/* v6: 自定义场景独立分区 — 始终显示入口 */}
+        <div className="bg-white rounded-3xl shadow-sm border border-dashed border-indigo-200 p-4 space-y-3">
+          <button
+            onClick={() => setShowCustom(!showCustom)}
+            className="w-full flex items-center justify-between py-2"
+            style={{ minHeight: '48px' }}
+          >
+            <span className="font-bold text-indigo-600" style={{ fontSize: '22px' }}>
+              📝 家长自定义 {customScenes.length > 0 ? `(${customScenes.length})` : ''}
+            </span>
+            <span className="text-indigo-400 text-lg">{showCustom ? '▲' : '▼'}</span>
+          </button>
+          {showCustom && (
+            <div className="space-y-2 pt-2 border-t border-indigo-100">
+              {customScenes.length > 0 ? (
+                customScenes.map((cs) => (
                   <button
                     key={cs.id}
                     onClick={() => navigate(`/game/${cs.id}`)}
@@ -303,11 +303,24 @@ export default function StarMap({
                     </div>
                     <span className="text-indigo-400 text-lg">▶</span>
                   </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                ))
+              ) : (
+                <div className="text-center py-3">
+                  <p className="text-gray-400 mb-2" style={{ fontSize: '18px' }}>
+                    还没有自定义场景
+                  </p>
+                  <button
+                    onClick={() => navigate('/game/custom')}
+                    className="inline-flex items-center gap-2 px-6 py-2 rounded-xl bg-indigo-500 text-white font-medium hover:bg-indigo-600 transition-colors"
+                    style={{ fontSize: '18px', minHeight: '48px' }}
+                  >
+                    + 创建场景
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* 全部完成 — 结局提示 */}
         {allPlanetsCompleted && planetHeartsFull && (
