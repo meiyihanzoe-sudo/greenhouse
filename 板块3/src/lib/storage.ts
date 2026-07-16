@@ -3,11 +3,11 @@
  */
 
 import { openDB, type IDBPDatabase } from 'idb';
-import type { GameProgress, Collectible, PlanetProgress } from '@/types';
+import type { GameProgress, Collectible, PlanetProgress, CustomScene } from '@/types';
 import type { AchievementProgress, DailyTaskProgress } from '@/modules/achievements/types';
 
 const DB_NAME = 'green-house';
-const DB_VERSION = 4;
+const DB_VERSION = 5; // v5: 新增 custom_scenes store
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 
@@ -56,6 +56,12 @@ export function getDb(): Promise<IDBPDatabase> {
         // v3: daily_task_progress
         if (!db.objectStoreNames.contains('daily_task_progress')) {
           db.createObjectStore('daily_task_progress', { keyPath: 'date' });
+        }
+        // v5: custom_scenes
+        if (!db.objectStoreNames.contains('custom_scenes')) {
+          const store = db.createObjectStore('custom_scenes', { keyPath: 'id' });
+          store.createIndex('category', 'category');
+          store.createIndex('createdAt', 'createdAt');
         }
       },
     });
@@ -140,7 +146,7 @@ export async function getDailyTaskProgress(date: string): Promise<DailyTaskProgr
 export async function clearAllGameData(): Promise<void> {
   const db = await getDb();
   const tx = db.transaction(
-    ['game_progress', 'collectibles', 'planet_progress', 'achievement_progress', 'daily_task_progress'],
+    ['game_progress', 'collectibles', 'planet_progress', 'achievement_progress', 'daily_task_progress', 'custom_scenes'],
     'readwrite',
   );
   await Promise.all([
@@ -149,9 +155,32 @@ export async function clearAllGameData(): Promise<void> {
     tx.objectStore('planet_progress').clear(),
     tx.objectStore('achievement_progress').clear(),
     tx.objectStore('daily_task_progress').clear(),
+    tx.objectStore('custom_scenes').clear(),
     tx.done,
   ]);
   localStorage.removeItem('star-adventure-intro-seen');
+}
+
+// ========== v5: 自定义场景 ==========
+
+export async function saveCustomScene(scene: CustomScene): Promise<void> {
+  const db = await getDb();
+  await db.put('custom_scenes', scene);
+}
+
+export async function getCustomScenes(): Promise<CustomScene[]> {
+  const db = await getDb();
+  return db.getAll('custom_scenes');
+}
+
+export async function getCustomSceneById(id: string): Promise<CustomScene | undefined> {
+  const db = await getDb();
+  return db.get('custom_scenes', id);
+}
+
+export async function deleteCustomScene(id: string): Promise<void> {
+  const db = await getDb();
+  await db.delete('custom_scenes', id);
 }
 
 // ========== 板块1/2 占位 ==========

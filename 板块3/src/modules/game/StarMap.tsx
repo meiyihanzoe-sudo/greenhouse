@@ -12,8 +12,9 @@ import { useNavigate } from 'react-router-dom';
 import { PlanetNode, type PlanetState } from './PlanetNode';
 import { StarProgress } from '@/components/shared/StarProgress';
 import { PLANET_NAMES, PLANET_EMOJIS, PLANET_SUBTITLES } from '@/types';
-import type { PlanetProgress } from '@/types';
-import { useState } from 'react';
+import type { PlanetProgress, CustomScene } from '@/types';
+import { useState, useEffect } from 'react';
+import { getCustomScenes } from '@/data/scenes';
 
 interface StarMapProps {
   stars: number;
@@ -66,6 +67,13 @@ export default function StarMap({
   const navigate = useNavigate();
   const [pressTimer, setPressTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [pressProgress, setPressProgress] = useState(0);
+  const [customScenes, setCustomScenes] = useState<CustomScene[]>([]);
+  const [showCustom, setShowCustom] = useState(false);
+
+  // 加载自定义场景
+  useEffect(() => {
+    getCustomScenes().then(setCustomScenes).catch(() => {});
+  }, []);
 
   // 统计收集物
   const shiningStars = collectibles.filter((c) => c.type === 'shining_star').length;
@@ -261,6 +269,45 @@ export default function StarMap({
             </div>
           </div>
         </div>
+
+        {/* v6: 自定义场景独立分区 */}
+        {customScenes.length > 0 && (
+          <div className="bg-white rounded-3xl shadow-sm border border-dashed border-indigo-200 p-4 space-y-3">
+            <button
+              onClick={() => setShowCustom(!showCustom)}
+              className="w-full flex items-center justify-between py-2"
+              style={{ minHeight: '48px' }}
+            >
+              <span className="font-bold text-indigo-600" style={{ fontSize: '22px' }}>
+                📝 家长自定义 ({customScenes.length})
+              </span>
+              <span className="text-indigo-400 text-lg">{showCustom ? '▲' : '▼'}</span>
+            </button>
+            {showCustom && (
+              <div className="space-y-2 pt-2 border-t border-indigo-100">
+                {customScenes.map((cs) => (
+                  <button
+                    key={cs.id}
+                    onClick={() => navigate(`/game/${cs.id}`)}
+                    className="w-full flex items-center gap-3 p-3 rounded-2xl bg-indigo-50 hover:bg-indigo-100 transition-colors text-left"
+                    style={{ minHeight: '56px' }}
+                  >
+                    <span className="text-2xl">{cs.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-700 truncate" style={{ fontSize: '20px' }}>
+                        {cs.title}
+                      </p>
+                      <p className="text-sm text-gray-400" style={{ fontSize: '16px' }}>
+                        {PLANET_EMOJIS[cs.category]} {PLANET_NAMES[cs.category]}
+                      </p>
+                    </div>
+                    <span className="text-indigo-400 text-lg">▶</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 全部完成 — 结局提示 */}
         {allPlanetsCompleted && planetHeartsFull && (

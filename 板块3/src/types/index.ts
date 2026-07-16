@@ -23,6 +23,39 @@ export type SceneType = 'single-choice' | 'multi-step' | 'emotion-recognition';
 /** 难度等级 */
 export type DifficultyLevel = 'sprout' | 'growing' | 'blooming';
 
+/** 自定义场景（家长创建） */
+export interface CustomScene {
+  id: string;           // 格式: "custom-{timestamp}"
+  title: string;
+  emoji: string;
+  description: string;
+  category: 'greeting' | 'thanks' | 'emotion' | 'request';
+  sceneType: SceneType;
+  difficultyLevel: DifficultyLevel;
+
+  // 单选题字段
+  options: { text: string; correct: boolean }[];
+  optionHints?: (string | null)[];
+  voicePrompt: string;
+  introText: string;
+  successText: string;
+  outroText: string;
+
+  // 多步场景字段
+  steps?: {
+    description: string;
+    options: { text: string; correct: boolean }[];
+    hints?: (string | null)[];
+  }[];
+
+  // 情绪识别字段
+  emotionOptions?: { emoji: string; label: string; correct: boolean }[];
+
+  // 元数据
+  createdAt: number;
+  updatedAt?: number;
+}
+
 /** 难度等级中文名 */
 export const DIFFICULTY_LABELS: Record<DifficultyLevel, string> = {
   sprout: '🌱 简单',

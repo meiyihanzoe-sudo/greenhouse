@@ -17,6 +17,7 @@ import GameHome from './modules/game/GameHome';
 import ScenePlay from './modules/game/ScenePlay';
 import ParentReview from './modules/game/ParentReview';
 import AchievementPage from './modules/achievements/AchievementPage';
+import CustomSceneEditor from './modules/game/CustomSceneEditor';
 
 // 占位组件 — 非板块3 的路由暂时保留
 function Placeholder({ name }: { name: string }) {
@@ -44,6 +45,8 @@ export const routes: RouteObject[] = [
       { path: 'game', element: <GameHome /> },
       // [板块3 v3] ✅ 成就页面（必须在 :sceneId 之前）
       { path: 'game/achievements', element: <AchievementPage /> },
+      // [板块3 v6] ✅ 自定义场景管理
+      { path: 'game/custom', element: <CustomSceneEditor /> },
       // [板块3实现] ✅ 已实现
       { path: 'game/:sceneId', element: <ScenePlay /> },
       // [板块3 v2] ✅ 家长回顾页

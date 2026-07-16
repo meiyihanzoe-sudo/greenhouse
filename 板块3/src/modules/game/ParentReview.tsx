@@ -326,6 +326,17 @@ export default function ParentReview() {
             {/* 成就摘要 */}
             <AchievementSummary />
 
+            {/* 自定义场景管理 */}
+            <div className="pt-4">
+              <button
+                onClick={() => navigate('/game/custom')}
+                className="w-full py-3 text-base font-medium rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-200 transition-colors"
+                style={{ fontSize: '20px', minHeight: '52px' }}
+              >
+                🛠️ 管理自定义场景
+              </button>
+            </div>
+
             {/* 新建存档 */}
             <div className="pt-4 border-t border-gray-100">
               {!showResetConfirm ? (

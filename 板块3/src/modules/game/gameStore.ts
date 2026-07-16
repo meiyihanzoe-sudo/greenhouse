@@ -16,7 +16,7 @@
  */
 
 import { create } from 'zustand';
-import { getActiveScenes, getSceneForDifficulty, type SceneData } from '@/data/scenes';
+import { getSceneForDifficulty, getAllScenes, type SceneData } from '@/data/scenes';
 import { saveGameProgress, getGameProgress, saveCollectible, getCollectibles, savePlanetProgress, clearAllGameData, saveAchievementProgress, getAchievementProgress, getDailyTaskProgress, saveDailyTaskProgress, saveAllAchievementProgress } from '@/lib/storage';
 import type { GameProgress, Collectible, PlanetProgress, DifficultyLevel } from '@/types';
 import { checkAchievements, ALL_ACHIEVEMENTS, getTodayTasks, getTodayStr, mergeTaskProgress } from '@/modules/achievements';
@@ -163,7 +163,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   // ---- 初始化 ----
   initGame: async () => {
-    const activeScenes = getActiveScenes();
+    const activeScenes = await getAllScenes();
 
     // 从 IndexedDB 恢复数据
     let savedStars = 0;
@@ -231,7 +231,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         category: cat,
         completed: false,
         completedScenes: 0,
-        totalScenes: getActiveScenes().filter((s) => s.category === cat).length,
+        totalScenes: activeScenes.filter((s) => s.category === cat).length,
         heartEarned: false,
       }));
     }

@@ -12,8 +12,9 @@
  *   blooming(🌳): 4 个选项，微妙情境，扩展跟读
  */
 
-import type { GameScene } from '@/types';
+import type { GameScene, CustomScene } from '@/types';
 import type { SceneType, SceneStep, IllustrationAsset, DifficultyLevel } from '@/types';
+import { getCustomScenes as loadCustomScenes } from '@/lib/storage';
 
 // ========== 难度变体类型 ==========
 
@@ -1053,4 +1054,52 @@ export const CATEGORY_LABELS: Record<string, string> = {
   emotion: '情绪表达😊',
   request: '需求表达🗣️',
 };
+
+// ========== v6: 自定义场景支持 ==========
+
+/** 将 CustomScene 转换为 SceneData（兼容现有播放流程） */
+export function customToSceneData(cs: CustomScene): SceneData {
+  return {
+    id: cs.id,
+    title: cs.title,
+    emoji: cs.emoji,
+    description: cs.description,
+    options: cs.options,
+    voicePrompt: cs.voicePrompt,
+    category: cs.category,
+    active: true,
+    difficultyLevel: cs.difficultyLevel,
+    introText: cs.introText,
+    successText: cs.successText,
+    outroText: cs.outroText,
+    optionHints: cs.optionHints || cs.options.map(() => null),
+    sceneType: cs.sceneType,
+    steps: cs.steps?.map((s) => ({
+      description: s.description,
+      options: s.options,
+      hints: s.hints,
+    })),
+    emotionOptions: cs.emotionOptions,
+  };
+}
+
+/** 获取所有场景（预置 + 自定义） */
+export async function getAllScenes(): Promise<SceneData[]> {
+  const preset = getActiveScenes();
+  try {
+    const custom = await loadCustomScenes();
+    return [...preset, ...custom.map(customToSceneData)];
+  } catch {
+    return preset;
+  }
+}
+
+/** 仅获取自定义场景 */
+export async function getCustomScenes(): Promise<CustomScene[]> {
+  try {
+    return await loadCustomScenes();
+  } catch {
+    return [];
+  }
+}
 
